@@ -26,13 +26,58 @@ var Article=connection.define('article',{
     title:{
         type:Sequelize.STRING,
         unique:true,
-        allowNull:false
+        allowNull:false,
+        validate:{
+            len:{
+                args:[2,10],
+                msg:"please enter a character of length between 2 to 10"
+            },
+            is:{
+                args:["^[a-z]+$",'i'],
+                msg:"only letters are valid"
+            }
+        }
     },
     body:{
         type:Sequelize.TEXT
+        // validate:{
+        //     stringUppercase:function(value){
+        //         var first=string.charAt(0);
+        //         if(!first===first.toUppercase()){
+        //             throw new Error("first letter must be uppercase");
+        //         }
+        //     }
+        // }
     }
 
+},{
+    hooks:{
+        beforeValidate:function(){
+            console.log("before validate");
+        },
+        afterValidate:function(){
+            console.log("after validate");
+        },
+        beforeCreate:function(res){
+            console.log("before create",res);
+        },
+        afterCreate:function(res){
+            console.log("after create",res.slug)
+        }
+    }
 })
+
+
+var User=connection.define('user',{
+    username:{
+        type:Sequelize.STRING,
+        allowNull:false
+    },
+    password:{
+        type:Sequelize.STRING,
+        allowNull:false
+    }
+});
 
 //testing the connection
 connection.authenticate()
@@ -53,21 +98,41 @@ Article.sync(
 ).then(()=>{
     return Article.create({
         slug:'title id',
-        title:"new titile ",
-        body:"this is a body"
+        title:"sghh",
+        body:"this is a body333"
+    }).then(()=>{
+        console.log("article inserted",Article.dataValues)
+    })
+    .catch((err)=>{
+        console.log("error",err)
     });
 });
 
+User.sync().then(()=>{
+
+    //creating a instance of user ,it wont save until we perform save funtion
+    let userInstance= User.build({
+        username:"sabin",
+        password:'mysecretkey'
+    });
+
+    userInstance.save().then((user)=>{
+        console.log("user",user.dataValues)
+    });
+})
+
+
+
 
 //getting all data
-Article.findAll().then((articles)=>{
-    console.log("articles",articles);
-    console.log("articles datavalues",articles.dataValues);
-    console.log("articles",articles.length);
-})
-.catch((err)=>{
-    console.log(err)
-})
+// Article.findAll().then((articles)=>{
+//     console.log("articles",articles);
+//     console.log("articles datavalues",articles.dataValues);
+//     console.log("articles",articles.length);
+// })
+// .catch((err)=>{
+//     console.log(err)
+// })
 
 
 
